@@ -3,54 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OM (OyexzMoney) - Catatan Keuangan</title>
+    <title>OM (OyexzMoney) - Dashboard Keuangan</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100 font-sans text-gray-800">
 
-    <div class="max-w-md mx-auto my-10 p-6 bg-white rounded-xl shadow-lg">
-        <h1 class="text-3xl font-bold text-center text-indigo-600 mb-2">OM</h1>
-        <p class="text-center text-gray-500 mb-6 font-medium">OyexzMoney Tracker</p>
-
-        <div class="bg-indigo-50 p-4 rounded-lg mb-6 text-center">
-            <h2 class="text-sm uppercase tracking-wider text-gray-500 font-semibold">Total Saldo</h2>
-            <p id="total-saldo" class="text-3xl font-extrabold text-indigo-700 mt-1">Rp 0</p>
+    <div class="max-w-md mx-auto my-10 p-6 bg-white rounded-xl shadow-lg space-y-6">
+        <div>
+            <h1 class="text-3xl font-extrabold text-center text-indigo-600 mb-1">OM</h1>
+            <p class="text-center text-gray-400 text-sm font-medium">OyexzMoney Tracker</p>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="bg-green-50 p-3 rounded-lg text-center border border-green-200">
-                <span class="text-xs text-green-600 font-bold uppercase">Pemasukan</span>
-                <p id="total-pemasukan" class="text-lg font-bold text-green-700">Rp 0</p>
+        <div class="space-y-3">
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-5 rounded-xl text-white shadow-md">
+                <h2 class="text-xs uppercase tracking-wider opacity-80 font-semibold">Sisa Uang (Saldo Saat Ini)</h2>
+                <p id="total-saldo" class="text-3xl font-black mt-1">Rp 0</p>
             </div>
-            <div class="bg-red-50 p-3 rounded-lg text-center border border-red-200">
-                <span class="text-xs text-red-600 font-bold uppercase">Pengeluaran</span>
-                <p id="total-pengeluaran" class="text-lg font-bold text-red-700">Rp 0</p>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-green-50 p-3 rounded-lg border border-green-200">
+                    <span class="text-[10px] text-green-600 font-bold uppercase block">Total Masuk</span>
+                    <p id="total-pemasukan" class="text-base font-bold text-green-700 mt-0.5">Rp 0</p>
+                </div>
+                <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+                    <span class="text-[10px] text-red-600 font-bold uppercase block">Total Keluar</span>
+                    <p id="total-pengeluaran" class="text-base font-bold text-red-700 mt-0.5">Rp 0</p>
+                </div>
             </div>
         </div>
 
-        <form id="money-form" class="space-y-4 mb-6">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Deskripsi</label>
-                <input type="text" id="desc" placeholder="Contoh: Gaji, Jajan Bakso" class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required>
+        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 text-center">Perbandingan Keuangan</h3>
+            <div class="relative w-full h-48 flex justify-center items-center">
+                <canvas id="financialChart"></canvas>
             </div>
+        </div>
+
+        <form id="money-form" class="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+            <h3 class="text-sm font-bold text-gray-700 mb-1">Tambah Transaksi Baru</h3>
             <div>
-                <label class="block text-sm font-medium text-gray-700">Jumlah (Rp)</label>
-                <input type="number" id="amount" placeholder="Contoh: 50000" class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required>
+                <input type="text" id="desc" placeholder="Deskripsi (cth: Jajan Bakso)" class="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Jenis Transaksi</label>
-                <select id="type" class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+            <div class="grid grid-cols-2 gap-2">
+                <input type="number" id="amount" placeholder="Jumlah (Rp)" class="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
+                <select id="type" class="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
                     <option value="pemasukan">Pemasukan</option>
                     <option value="pengeluaran">Pengeluaran</option>
                 </select>
             </div>
-            <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md font-medium hover:bg-indigo-700 transition duration-200">Tambah Transaksi</button>
+            <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-md text-sm font-bold hover:bg-indigo-700 transition shadow">Simpan</button>
         </form>
 
         <div>
-            <h3 class="text-lg font-bold text-gray-800 mb-3">Riwayat Transaksi</h3>
-            <ul id="transaction-list" class="space-y-2 max-h-60 overflow-y-auto">
-                <p class="text-gray-400 text-center py-4 text-sm">Memuat data...</p>
+            <h3 class="text-sm font-bold text-gray-700 mb-3">Riwayat Transaksi</h3>
+            <ul id="transaction-list" class="space-y-2 max-h-52 overflow-y-auto">
+                <p class="text-gray-400 text-center py-4 text-xs">Memuat data...</p>
             </ul>
         </div>
     </div>
@@ -59,22 +67,23 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ========================================================
-        // 1. GANTI DENGAN KONFIGURASI FIREBASE KAKAK DI SINI!
-        // ========================================================
+        // Konfigurasi Firebase milikmu
         const firebaseConfig = {
-            apiKey: "AIzaSyYOUR_API_KEY",
-            authDomain: "your-app.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-app.appspot.com",
-            messagingSenderId: "your-sender-id",
-            appId: "your-app-id"
+            apiKey: "AIzaSyBwz_apbt2Sv6OFh_WoXk0SdAtQBhTqdS4",
+            authDomain: "mymoney-a2267.firebaseapp.com",
+            projectId: "mymoney-a2267",
+            storageBucket: "mymoney-a2267.firebasestorage.app",
+            messagingSenderId: "351256597063",
+            appId: "1:351256597063:web:3f2cc76aa45a99497e5762"
         };
 
-        // Inisialisasi Firebase
+        // Inisialisasi Firebase & Firestore
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const transactionRef = collection(db, "transactions");
+
+        // Variabel Global untuk Chart.js (Grafik)
+        let financeChart = null;
 
         // DOM Elements
         const form = document.getElementById('money-form');
@@ -86,15 +95,48 @@
         const totalPemasukanEl = document.getElementById('total-pemasukan');
         const totalPengeluaranEl = document.getElementById('total-pengeluaran');
 
-        // Format Angka ke Rupiah
-        const formatRupiah = (number) => {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+        // Format Rupiah
+        const formatRupiah = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+
+        // Fungsi Menggambar / Update Grafik (Doughnut Chart)
+        const updateChart = (pemasukan, pengeluaran) => {
+            const ctx = document.getElementById('financialChart').getContext('2d');
+            
+            // Jika grafik sudah ada sebelumnya, hancurkan dulu agar tidak tumpang tindih
+            if (financeChart) {
+                financeChart.destroy();
+            }
+
+            // Jika belum ada data sama sekali, tampilkan grafik kosong berwarna abu-abu
+            const hasData = pemasukan > 0 || pengeluaran > 0;
+            const dataValues = hasData ? [pemasukan, pengeluaran] : [1];
+            const bgColors = hasData ? ['#10B981', '#EF4444'] : ['#E5E7EB'];
+            const labels = hasData ? ['Pemasukan', 'Pengeluaran'] : ['Belum Ada Data'];
+
+            financeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: bgColors,
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                    }
+                }
+            });
         };
 
-        // Submit Data Baru ke Firebase
+        // Simpan Data Baru ke Firebase
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const desc = descInput.value;
             const amount = parseFloat(amountInput.value);
             const type = typeInput.value;
@@ -107,8 +149,8 @@
                     createdAt: new Date()
                 });
                 form.reset();
-            } catch (error) {
-                console.error("Error menambahkan dokumen: ", error);
+            } catch (err) {
+                console.error("Gagal menyimpan data:", err);
             }
         });
 
@@ -119,7 +161,7 @@
             }
         };
 
-        // Mendengarkan perubahan data secara Realtime
+        // Baca Data Real-Time dari Firebase & Update Visual
         const q = query(transactionRef, orderBy("createdAt", "desc"));
         onSnapshot(q, (snapshot) => {
             let listHtml = '';
@@ -127,47 +169,49 @@
             let totalPengeluaran = 0;
 
             if (snapshot.empty) {
-                transactionList.innerHTML = `<p class="text-gray-400 text-center py-4 text-sm">Belum ada transaksi.</p>`;
+                transactionList.innerHTML = `<p class="text-gray-400 text-center py-4 text-xs">Belum ada transaksi.</p>`;
                 totalSaldoEl.innerText = formatRupiah(0);
                 totalPemasukanEl.innerText = formatRupiah(0);
                 totalPengeluaranEl.innerText = formatRupiah(0);
+                updateChart(0, 0);
                 return;
             }
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 const id = doc.id;
-                
                 const isPemasukan = data.type === 'pemasukan';
-                if(isPemasukan) {
-                    totalPemasukan += data.amount;
-                } else {
-                    totalPengeluaran += data.amount;
-                }
+
+                if(isPemasukan) totalPemasukan += data.amount;
+                else totalPengeluaran += data.amount;
 
                 listHtml += `
-                    <li class="flex justify-between items-center bg-gray-50 p-3 rounded-md border-l-4 ${isPemasukan ? 'border-green-500' : 'border-red-500'} shadow-sm">
+                    <li class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border-l-4 ${isPemasukan ? 'border-green-500' : 'border-red-500'} shadow-sm text-xs">
                         <div>
-                            <p class="font-medium text-gray-800 text-sm">${data.desc}</p>
-                            <span class="text-xs text-gray-400">${isPemasukan ? 'Pemasukan' : 'Pengeluaran'}</span>
+                            <p class="font-semibold text-gray-800">${data.desc}</p>
+                            <span class="text-[10px] text-gray-400 capitalize">${data.type}</span>
                         </div>
-                        <div class="flex items-center space-x-3">
-                            <span class="font-bold text-sm ${isPemasukan ? 'text-green-600' : 'text-red-600'}">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold ${isPemasukan ? 'text-green-600' : 'text-red-600'}">
                                 ${isPemasukan ? '+' : '-'} ${formatRupiah(data.amount)}
                             </span>
-                            <button onclick="deleteTransaction('${id}')" class="text-gray-400 hover:text-red-500 font-bold text-xs px-1">✕</button>
+                            <button onclick="deleteTransaction('${id}')" class="text-gray-300 hover:text-red-500 font-bold px-1 text-sm">✕</button>
                         </div>
                     </li>
                 `;
             });
 
-            const totalSaldo = totalPemasukan - totalPengeluaran;
+            // Perhitungan Sisa Uang (Saldo) = Pemasukan - Pengeluaran
+            const sisaUang = totalPemasukan - totalPengeluaran;
 
-            // Update UI
+            // Render ke UI
             transactionList.innerHTML = listHtml;
-            totalSaldoEl.innerText = formatRupiah(totalSaldo);
+            totalSaldoEl.innerText = formatRupiah(sisaUang);
             totalPemasukanEl.innerText = formatRupiah(totalPemasukan);
             totalPengeluaranEl.innerText = formatRupiah(totalPengeluaran);
+
+            // Update Grafik Chart.js secara dinamis sesuai data Firebase terbaru
+            updateChart(totalPemasukan, totalPengeluaran);
         });
     </script>
 </body>
