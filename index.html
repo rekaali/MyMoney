@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OM (OyexzMoney) - Catatan Keuangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="max-w-md mx-auto my-10 p-6 bg-white rounded-xl shadow-lg">
+        <h1 class="text-3xl font-bold text-center text-indigo-600 mb-2">OM</h1>
+        <p class="text-center text-gray-500 mb-6 font-medium">OyexzMoney Tracker</p>
+
+        <div class="bg-indigo-50 p-4 rounded-lg mb-6 text-center">
+            <h2 class="text-sm uppercase tracking-wider text-gray-500 font-semibold">Total Saldo</h2>
+            <p id="total-saldo" class="text-3xl font-extrabold text-indigo-700 mt-1">Rp 0</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-green-50 p-3 rounded-lg text-center border border-green-200">
+                <span class="text-xs text-green-600 font-bold uppercase">Pemasukan</span>
+                <p id="total-pemasukan" class="text-lg font-bold text-green-700">Rp 0</p>
+            </div>
+            <div class="bg-red-50 p-3 rounded-lg text-center border border-red-200">
+                <span class="text-xs text-red-600 font-bold uppercase">Pengeluaran</span>
+                <p id="total-pengeluaran" class="text-lg font-bold text-red-700">Rp 0</p>
+            </div>
+        </div>
+
+        <form id="money-form" class="space-y-4 mb-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Deskripsi</label>
+                <input type="text" id="desc" placeholder="Contoh: Gaji, Jajan Bakso" class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Jumlah (Rp)</label>
+                <input type="number" id="amount" placeholder="Contoh: 50000" class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Jenis Transaksi</label>
+                <select id="type" class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="pemasukan">Pemasukan</option>
+                    <option value="pengeluaran">Pengeluaran</option>
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md font-medium hover:bg-indigo-700 transition duration-200">Tambah Transaksi</button>
+        </form>
+
+        <div>
+            <h3 class="text-lg font-bold text-gray-800 mb-3">Riwayat Transaksi</h3>
+            <ul id="transaction-list" class="space-y-2 max-h-60 overflow-y-auto">
+                <p class="text-gray-400 text-center py-4 text-sm">Memuat data...</p>
+            </ul>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ========================================================
+        // 1. GANTI DENGAN KONFIGURASI FIREBASE KAKAK DI SINI!
+        // ========================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyYOUR_API_KEY",
+            authDomain: "your-app.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-app.appspot.com",
+            messagingSenderId: "your-sender-id",
+            appId: "your-app-id"
+        };
+
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const transactionRef = collection(db, "transactions");
+
+        // DOM Elements
+        const form = document.getElementById('money-form');
+        const descInput = document.getElementById('desc');
+        const amountInput = document.getElementById('amount');
+        const typeInput = document.getElementById('type');
+        const transactionList = document.getElementById('transaction-list');
+        const totalSaldoEl = document.getElementById('total-saldo');
+        const totalPemasukanEl = document.getElementById('total-pemasukan');
+        const totalPengeluaranEl = document.getElementById('total-pengeluaran');
+
+        // Format Angka ke Rupiah
+        const formatRupiah = (number) => {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+        };
+
+        // Submit Data Baru ke Firebase
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const desc = descInput.value;
+            const amount = parseFloat(amountInput.value);
+            const type = typeInput.value;
+
+            try {
+                await addDoc(transactionRef, {
+                    desc: desc,
+                    amount: amount,
+                    type: type,
+                    createdAt: new Date()
+                });
+                form.reset();
+            } catch (error) {
+                console.error("Error menambahkan dokumen: ", error);
+            }
+        });
+
+        // Hapus Data dari Firebase
+        window.deleteTransaction = async (id) => {
+            if(confirm("Hapus transaksi ini?")) {
+                await deleteDoc(doc(db, "transactions", id));
+            }
+        };
+
+        // Mendengarkan perubahan data secara Realtime
+        const q = query(transactionRef, orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            let listHtml = '';
+            let totalPemasukan = 0;
+            let totalPengeluaran = 0;
+
+            if (snapshot.empty) {
+                transactionList.innerHTML = `<p class="text-gray-400 text-center py-4 text-sm">Belum ada transaksi.</p>`;
+                totalSaldoEl.innerText = formatRupiah(0);
+                totalPemasukanEl.innerText = formatRupiah(0);
+                totalPengeluaranEl.innerText = formatRupiah(0);
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const id = doc.id;
+                
+                const isPemasukan = data.type === 'pemasukan';
+                if(isPemasukan) {
+                    totalPemasukan += data.amount;
+                } else {
+                    totalPengeluaran += data.amount;
+                }
+
+                listHtml += `
+                    <li class="flex justify-between items-center bg-gray-50 p-3 rounded-md border-l-4 ${isPemasukan ? 'border-green-500' : 'border-red-500'} shadow-sm">
+                        <div>
+                            <p class="font-medium text-gray-800 text-sm">${data.desc}</p>
+                            <span class="text-xs text-gray-400">${isPemasukan ? 'Pemasukan' : 'Pengeluaran'}</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="font-bold text-sm ${isPemasukan ? 'text-green-600' : 'text-red-600'}">
+                                ${isPemasukan ? '+' : '-'} ${formatRupiah(data.amount)}
+                            </span>
+                            <button onclick="deleteTransaction('${id}')" class="text-gray-400 hover:text-red-500 font-bold text-xs px-1">✕</button>
+                        </div>
+                    </li>
+                `;
+            });
+
+            const totalSaldo = totalPemasukan - totalPengeluaran;
+
+            // Update UI
+            transactionList.innerHTML = listHtml;
+            totalSaldoEl.innerText = formatRupiah(totalSaldo);
+            totalPemasukanEl.innerText = formatRupiah(totalPemasukan);
+            totalPengeluaranEl.innerText = formatRupiah(totalPengeluaran);
+        });
+    </script>
+</body>
+</html>
